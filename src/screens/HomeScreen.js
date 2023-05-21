@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  ScrollView,
+  Image,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 
 const ReportEventScreen = () => {
   const [eventType, setEventType] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [events, setEvents] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const handleReportEvent = async () => {
     try {
@@ -13,6 +25,7 @@ const ReportEventScreen = () => {
         eventType,
         location,
         description,
+        image: selectedImage ? selectedImage.uri : null,
       };
 
       const response = await fetch(
@@ -27,17 +40,11 @@ const ReportEventScreen = () => {
       );
 
       if (response.ok) {
-        Alert.alert("Event Reported", "Thank you for reporting the event.", [
-          {
-            text: "OK",
-            onPress: async () => {
-              setEventType("");
-              setLocation("");
-              setDescription("");
-              await scheduleNotification(eventData.eventType);
-            },
-          },
-        ]);
+        Alert.alert("Event Reported", "Thank you for reporting the event.");
+        setEventType("");
+        setLocation("");
+        setDescription("");
+        setSelectedImage(null);
       } else {
         Alert.alert(
           "Error",
@@ -72,14 +79,21 @@ const ReportEventScreen = () => {
     }
   };
 
-  const scheduleNotification = async (eventType) => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "New Event Added",
-        body: `A new ${eventType} event has been reported!`,
-      },
-      trigger: null, // You can customize the trigger if needed
-    });
+  const handleImagePicker = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert(
+        "Permission Required",
+        "Please grant permission to access the device's image library."
+      );
+      return;
+    }
+
+    const imagePickerResult = await ImagePicker.launchImageLibraryAsync();
+    if (!imagePickerResult.cancelled) {
+      setSelectedImage(imagePickerResult.assets[0]);
+    }
   };
 
   useEffect(() => {
@@ -107,18 +121,110 @@ const ReportEventScreen = () => {
         value={description}
         onChangeText={(text) => setDescription(text)}
       />
-      <Button title="Report Event" onPress={handleReportEvent} />
-      <Button title="Fetch Events" onPress={fetchEvents} />
-      <Text>Events:</Text>
-      {events.map((event) => (
-        <View key={event.id}>
-          <Text>Event Type: {event.eventType}</Text>
-          <Text>Location: {event.location}</Text>
-          <Text>Description: {event.description}</Text>
-        </View>
-      ))}
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Add Picture"
+          onPress={handleImagePicker}
+          style={styles.button}
+        />
+        {selectedImage && (
+          <Image
+            source={{ uri: selectedImage.uri }}
+            style={styles.imagePreview}
+          />
+        )}
+      </View>
+      <Button
+        title="Report Event"
+        onPress={handleReportEvent}
+        style={styles.button}
+      />
+      <View style={styles.space} />
+      <Button
+        title="View Previous Events"
+        onPress={fetchEvents}
+        style={styles.button}
+      />
+      <Text style={styles.eventsTitle}>Events:</Text>
+      <ScrollView style={styles.eventContainer}>
+        {events.map((event) => (
+          <View key={event.id} style={styles.event}>
+            <Text style={styles.eventType}>Event Type: {event.eventType}</Text>
+            <Text style={styles.location}>Location: {event.location}</Text>
+            <Text style={styles.description}>
+              Description: {event.description}
+            </Text>
+            {event.image && (
+              <Image source={{ uri: event.image }} style={styles.eventImage} />
+            )}
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  input: {
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  button: {
+    marginRight: 8,
+  },
+  space: {
+    height: 10,
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
+    resizeMode: "cover",
+    marginRight: 8,
+  },
+  eventsTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  eventContainer: {
+    flex: 1,
+  },
+  event: {
+    borderWidth: 1,
+    borderColor: "gray",
+    padding: 8,
+    marginBottom: 8,
+  },
+  eventType: {
+    fontWeight: "bold",
+  },
+  location: {
+    fontStyle: "italic",
+  },
+  description: {},
+  eventImage: {
+    width: 200,
+    height: 200,
+    resizeMode: "cover",
+    marginTop: 8,
+  },
+});
 
 export default ReportEventScreen;
