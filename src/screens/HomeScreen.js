@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
-import * as Notifications from "expo-notifications";
+import { View, Text, TextInput, Button, Alert } from "react-native";
 
 const ReportEventScreen = () => {
   const [eventType, setEventType] = useState("");
@@ -116,89 +107,18 @@ const ReportEventScreen = () => {
         value={description}
         onChangeText={(text) => setDescription(text)}
       />
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Report Event"
-          onPress={handleReportEvent}
-          style={styles.reportButton}
-        />
-        <View style={styles.space} />
-        <Button
-          title="View Previous Events"
-          onPress={fetchEvents}
-          style={styles.fetchButton}
-        />
-      </View>
-      <Text style={styles.eventsTitle}>Events:</Text>
-      <ScrollView style={styles.scrollView}>
-        {events.map((event) => (
-          <View key={event.id} style={styles.eventContainer}>
-            <Text style={styles.eventType}>Event Type: {event.eventType}</Text>
-            <Text style={styles.location}>Location: {event.location}</Text>
-            <Text style={styles.description}>
-              Description: {event.description}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
+      <Button title="Report Event" onPress={handleReportEvent} />
+      <Button title="Fetch Events" onPress={fetchEvents} />
+      <Text>Events:</Text>
+      {events.map((event) => (
+        <View key={event.id}>
+          <Text>Event Type: {event.eventType}</Text>
+          <Text>Location: {event.location}</Text>
+          <Text>Description: {event.description}</Text>
+        </View>
+      ))}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  buttonContainer: {
-    flexDirection: "column",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  reportButton: {
-    flex: 1,
-    marginRight: 8,
-  },
-  fetchButton: {
-    flex: 1,
-    marginLeft: 8,
-  },
-  eventsTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  eventContainer: {
-    borderWidth: 1,
-    borderColor: "gray",
-    padding: 8,
-    marginBottom: 8,
-  },
-  eventType: {
-    fontWeight: "bold",
-  },
-  location: {
-    fontStyle: "italic",
-  },
-  description: {},
-  space: {
-    height: 10,
-  },
-});
 
 export default ReportEventScreen;
