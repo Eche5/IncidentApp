@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import * as Notifications from "expo-notifications";
 
 const ReportEventScreen = () => {
   const [eventType, setEventType] = useState("");
@@ -27,10 +36,17 @@ const ReportEventScreen = () => {
       );
 
       if (response.ok) {
-        Alert.alert("Event Reported", "Thank you for reporting the event.");
-        setEventType("");
-        setLocation("");
-        setDescription("");
+        Alert.alert("Event Reported", "Thank you for reporting the event.", [
+          {
+            text: "OK",
+            onPress: async () => {
+              setEventType("");
+              setLocation("");
+              setDescription("");
+              await scheduleNotification(eventData.eventType);
+            },
+          },
+        ]);
       } else {
         Alert.alert(
           "Error",
@@ -63,6 +79,16 @@ const ReportEventScreen = () => {
         "An error occurred while fetching events. Please try again later."
       );
     }
+  };
+
+  const scheduleNotification = async (eventType) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "New Event Added",
+        body: `A new ${eventType} event has been reported!`,
+      },
+      trigger: null, // You can customize the trigger if needed
+    });
   };
 
   useEffect(() => {
@@ -104,15 +130,17 @@ const ReportEventScreen = () => {
         />
       </View>
       <Text style={styles.eventsTitle}>Events:</Text>
-      {events.map((event) => (
-        <View key={event.id} style={styles.eventContainer}>
-          <Text style={styles.eventType}>Event Type: {event.eventType}</Text>
-          <Text style={styles.location}>Location: {event.location}</Text>
-          <Text style={styles.description}>
-            Description: {event.description}
-          </Text>
-        </View>
-      ))}
+      <ScrollView style={styles.scrollView}>
+        {events.map((event) => (
+          <View key={event.id} style={styles.eventContainer}>
+            <Text style={styles.eventType}>Event Type: {event.eventType}</Text>
+            <Text style={styles.location}>Location: {event.location}</Text>
+            <Text style={styles.description}>
+              Description: {event.description}
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -152,8 +180,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
   },
-  space: {
-    height: 10,
+  scrollView: {
+    flex: 1,
   },
   eventContainer: {
     borderWidth: 1,
