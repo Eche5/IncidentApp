@@ -98,7 +98,7 @@ const ReportEventScreen = () => {
         />
         <View style={styles.space} />
         <Button
-          title="Fetch Events"
+          title="View Previous Events"
           onPress={fetchEvents}
           style={styles.fetchButton}
         />
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   description: {},
   space: {
-    width: 8,
+    height: 10,
   },
 });
 
